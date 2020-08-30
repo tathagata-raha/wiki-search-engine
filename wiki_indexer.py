@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# Import the required libraries
+
+# In[124]:
 
 
 import xml.sax
@@ -14,13 +16,17 @@ import pickle
 import time
 
 
-# Need to change these below
+# In the cell below, we have instantiated some global variables and initiated the stemmer
 
-# In[2]:
+# In[125]:
 
 
-INPUT_FILE = sys.argv[1]
-OUTPUT = sys.argv[2]
+#Need to change these below
+INPUT_FILE = '../enwiki-20200801-pages-articles-multistream1.xml-p1p30303'
+OUTPUT = 'index/'
+INDEX_STAT = '​invertedindex_stat.txt​'
+TOTAL_TOKENS = 0
+TOTAL_INV_TOKENS = 0
 if OUTPUT[-1]!='/':
     OUTPUT+='/'
 STOP_DICT = {}
@@ -38,11 +44,15 @@ title_dict = {}
 indexMap = defaultdict(list)
 
 
-# In[3]:
+# The preprocess function is to process the text. It tokenizes the data, removes unnecessary non-ASCII characters and punctuations, stem the words using pystemmer and remove stop words
+
+# In[107]:
 
 
 def preprocess(text):
     tokens = re.sub(r'[^A-Za-z0-9]+', r' ', text).split()
+    global TOTAL_TOKENS
+    TOTAL_TOKENS += len(tokens)
     stemmed_stop_free = []
     for token in tokens:
         if token not in STOP_DICT:
@@ -55,7 +65,10 @@ def preprocess(text):
     return stemmed_stop_free
 
 
-# In[4]:
+# The extract_under_ref function separates and preprocesses links, references and categories.
+# The extract_infobox_and_refs separates and preprocesses infobox contents and references.
+
+# In[127]:
 
 
 def extract_under_ref(splits):
@@ -93,40 +106,11 @@ def extract_infobox_and_refs(text):
         for i in re.findall("{{cite.*title=.*}}", line):
             refs2.append(re.sub(r'.*title[\ ]*=[\ ]*([^\|]*).*', r'\1', line))
     return preprocess(' '.join(info)), preprocess(' '.join(refs2))
-# def getReferences(self, text):
-
-#     data = text.split('\n')
-#     refs = []
-#     for line in data:
-#         if re.search(r'<ref', line):
-#             refs.append(re.sub(r'.*title[\ ]*=[\ ]*([^\|]*).*', r'\1', line))
-
-#     return self.process(' '.join(refs))
 
 
-# def getCategories(self, text):
-    
-#     data = text.split('\n')
-#     categories = []
-#     for line in data:
-#         if re.match(r'\[\[category', line):
-#             categories.append(re.sub(r'\[\[category:(.*)\]\]', r'\1', line))
-    
-#     return self.process(' '.join(categories))
+# The split_page function splits a Wikipedia page into different parts like text, links, refs, body, categories
 
-
-# def getExternalLinks(self, text):
-    
-#     data = text.split('\n')
-#     links = []
-#     for line in data:
-#         if re.match(r'\*[\ ]*\[', line):
-#             links.append(line)
-    
-#     return self.process(' '.join(links))
-
-
-# In[5]:
+# In[128]:
 
 
 def split_page( text):
@@ -146,110 +130,38 @@ def split_page( text):
     data['infobox'], data['refs2'] = extract_infobox_and_refs(splits[0])
     data['refs'] = data['refs'] + data['refs2']
     return data
-    # data['infobox']
-
-    # print(self.title)
-    # titlefile = open('./index/titles','a')
-    # string = str(self.id)+' '+self.title
-    # string = string.strip().encode("ascii", errors="ignore").decode() + '\n'
-    # titlefile.write(string)
-    # titlefile.close()
-
-    # self.infobox = self.getInfobox(data[0])
-    # self.text = self.getBody(data[0])
-    # self.title = self.getTitle(self.title)
-
-    # print(self.title)
-    # titlefile.write(str(self.id)+' '+self.title)
-
-    # return self
 
 
-# In[6]:
+# The indexify function converts the document into inverted index
+
+# In[110]:
 
 
 def indexify(data):
-    # global pageCount
-    # global fileCount
     global indexMap
-    # global offset
-    # global dictID
-    # global filemap
-
-    # ID = pageCount
     totalFreq = defaultdict(lambda: 0)
-
-    d = defaultdict(lambda: 0)
-    for word in data['title']:
-        d[word] += 1
-        totalFreq[word] += 1
-    title = d
-    
-    d = defaultdict(lambda: 0)
-    for word in data['text']:
-        d[word] += 1
-        totalFreq[word] += 1
-    body = d
-
-    d = defaultdict(lambda: 0)
-    for word in data['infobox']:
-        d[word] += 1
-        totalFreq[word] += 1
-    info = d
-
-    d = defaultdict(lambda: 0)
-    for word in data['categories']:
-        d[word] += 1
-        totalFreq[word] += 1
-    categories = d
-    
-    d = defaultdict(lambda: 0)
-    for word in data['links']:
-        d[word] += 1
-        totalFreq[word] += 1
-    links = d
-    
-    d = defaultdict(lambda: 0)
-    for word in data['refs']:
-        d[word] += 1
-        totalFreq[word] += 1
-    references = d
-
+    inverted = {}
+    for i in ['title','text','infobox','categories','links','refs']:
+        d = defaultdict(lambda: 0)
+        for word in data[i]:
+            d[word] += 1
+            totalFreq[word] += 1
+        inverted[i] = d
     for word in totalFreq.keys():
-        t = title[word]
-        b = body[word]
-        i = info[word]
-        c = categories[word]
-        l = links[word]
-        r = references[word]
         string = 'd'+str(data['id'])
-        if t:
-            string += 't' + str(t)
-        if b:
-            string += 'b' + str(b)
-        if i:
-            string += 'i' + str(i)
-        if c:
-            string += 'c' + str(c)
-        if l:
-            string += 'l' + str(l)
-        if r:
-            string += 'r' + str(r)
-    
+        for i in ['title','text','infobox','categories','links','refs']:
+            temp = inverted[i][word]
+            if temp:
+                if i != 'text':
+                    string += i[0] + str(temp)
+                else:
+                    string += 'b' + str(temp)
         indexMap[word].append(string)
-    
-    # print(indexMap)
-
-    # if pageCount%20000 == 0:
-    
-
-    #     indexMap = defaultdict(list)
-    #     dictID = {}
-    #     orderedMap = []
-    #     fileCount += 1
 
 
-# In[7]:
+# The xml_handler class is used to parse he xml file and call all the above functions
+
+# In[129]:
 
 
 class xml_handler( xml.sax.ContentHandler ):
@@ -268,6 +180,8 @@ class xml_handler( xml.sax.ContentHandler ):
         self.ref_len = 0
         self.categories_len = 0
         self.text_len = 0
+        self.title_len = 0
+        self.info_len = 0
         self.pages = 0
         self.start_time = start_time
         # self.hashed = 0
@@ -291,9 +205,12 @@ class xml_handler( xml.sax.ContentHandler ):
             title_dict[self.pages] = self.title
             indexify(data)
             self.link_len += len(data['links'])
+            self.info_len += len(data['links'])
             self.ref_len += len(data['refs'])
             self.categories_len += len(data['categories'])
             self.text_len += len(data['text'])
+            self.title_len += len(data['title'])
+            
             self.re_init()
             if self.pages %1000 == 0:
                 print(self.link_len, self.ref_len, self.categories_len, self.text_len)
@@ -310,7 +227,9 @@ class xml_handler( xml.sax.ContentHandler ):
         #     self.hashed = 1
 
 
-# In[8]:
+# The store_index function stores the index and index stats in files
+
+# In[130]:
 
 
 def store_index():
@@ -322,9 +241,14 @@ def store_index():
         orderedMap.append(string)
     with open(OUTPUT+'index.txt',"w+") as f:
         f.write('\n'.join(orderedMap))
+    with open(INDEX_STAT,"w+") as f:
+        f.write(str(TOTAL_TOKENS)+'\n')
+        f.write(str(len(indexMap))+'\n')
 
 
-# In[9]:
+# The wiki_parse function calls the xml_handler class and starts parsing the xml file. It also measures the time taken to parse the files.
+
+# In[131]:
 
 
 def wiki_parse(xml_file):
@@ -346,13 +270,13 @@ def wiki_parse(xml_file):
     print("Time taken: ",time.time() - parse_end_time)
 
 
-# In[10]:
+# In[114]:
 
 
 wiki_parse(INPUT_FILE)
 
 
-# In[11]:
+# In[115]:
 
 
 # count = 0
@@ -365,7 +289,7 @@ wiki_parse(INPUT_FILE)
 # print(count)
 
 
-# In[12]:
+# In[116]:
 
 
 # for i in range(len(title_dict)):
@@ -373,7 +297,7 @@ wiki_parse(INPUT_FILE)
 #         print(i)
 
 
-# In[13]:
+# In[117]:
 
 
 # string = 'Ancient Egypt; Abydos, Egypt; Amasis II; Ammonius Saccas; Ababda people; Aswan; Abbas II of Egypt; Ambrose of Alexandria; Alexandria; Athanasius of Alexandria; Anthony the Great; Basel Convention; Battle of the Nile; Battle of Actium; Convention on Biological Diversity; CITES; Environmental Modification Convention; Cairo; Clement of Alexandria; Cyril of Alexandria; Coptic Orthodox Church of Alexandria; Duke Nukem 3D; Diophantus; Geography of Egypt; Demographics of Egypt; Politics of Egypt; Economy of Egypt; Telecommunications in Egypt; Transport in Egypt; Egyptian Armed Forces; Foreign relations of Egypt; Book of Exodus; First Battle of El Alamein; Go Down Moses; Great Pyramid of Giza; Great Rift Valley; Herodotus; History of Egypt; International Tropical Timber Agreement, 1983; International Tropical Timber Agreement, 1994; Imhotep; Kyoto Protocol; Kellogg–Briand Pact; Lighthouse of Alexandria; Library of Alexandria; Maimonides; Montreal Protocol; Mark Antony; Metre Convention; Muslim Brotherhood; Munich massacre; Nile; Treaty on the Non-Proliferation of Nuclear Weapons; Ozymandias; Origen; Pachomius the Great; Prospero Alpini; Pompey; Ptolemy; Ptolemaic dynasty; Palestine Liberation Organization; Red Sea; Rosetta Stone; Return to Castle Wolfenstein; Saladin; Sahara desert (ecoregion); Sinai Peninsula; Stargate (film); Saluki; Suez Canal; Six-Day War; Second Battle of El Alamein; Tax'
@@ -383,7 +307,7 @@ wiki_parse(INPUT_FILE)
 #     g_list.append(preprocess(i.lower()))
 
 
-# In[14]:
+# In[118]:
 
 
 # for element in g_list:
@@ -391,27 +315,39 @@ wiki_parse(INPUT_FILE)
 #         print(element)
 
 
-# In[15]:
+# In[119]:
 
 
 # indexMap['egypt']
 
 
-# In[16]:
+# In[120]:
 
 
 # for i in ['2510', '12182', '13075', '19205']:
 #     print(title_dict[int(i)], end='; ')
 
 
-# In[17]:
+# In[121]:
 
 
 # line = '{{cite news|last=Rendell|first=Ruth|authorlink=Ruth Rendell|title=A most serious and extraordinary problem |url=https://www.theguardian.com/books/2008/sep/13/arthurconandoyle.crime|newspaper=[[The Guardian]]|date= 12 September 2008|accessdate=8 December 2018}}'
 # re.sub(r'.*title[\ ]*=[\ ]*([^\|]*).*', r'\1', line)
 
 
-# In[18]:
+# In[122]:
+
+
+# TOTAL_TOKENS
+
+
+# In[123]:
+
+
+# len(indexMap)
+
+
+# In[124]:
 
 
 

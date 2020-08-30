@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[174]:
+# In[198]:
 
 
 import re
@@ -12,13 +12,13 @@ from collections import defaultdict, OrderedDict
 import sys
 
 
-# In[175]:
+# In[199]:
 
 
 re.split(':','b:Sachin c:world cup')
 
 
-# In[176]:
+# In[200]:
 
 
 STOP_DICT = {}
@@ -47,7 +47,7 @@ for i in temp:
     index[splits[0]] = splits[1].split(' ')
 
 
-# In[177]:
+# In[201]:
 
 
 def preprocess(text):
@@ -60,7 +60,7 @@ def preprocess(text):
     return stemmed_stop_free
 
 
-# In[178]:
+# In[202]:
 
 
 def parse_query(query):
@@ -76,7 +76,7 @@ def parse_query(query):
         return query_dict, 1
 
 
-# In[179]:
+# In[203]:
 
 
 def run_whole_query(query):
@@ -97,7 +97,7 @@ def run_whole_query(query):
     return docs_intersect, docs_postlist
 
 
-# In[180]:
+# In[204]:
 
 
 def run_parsed_query(query_dict):
@@ -135,7 +135,7 @@ def run_parsed_query(query_dict):
     return docs_intersect, docs_postlist
 
 
-# In[186]:
+# In[205]:
 
 
 def print_postlist(postlist, docs_ids):
@@ -147,7 +147,7 @@ def print_postlist(postlist, docs_ids):
         print()
 
 
-# In[187]:
+# In[206]:
 
 
 parsed, querytype = parse_query(QUERY)
@@ -159,13 +159,14 @@ else:
     docs_intersect, docs_postlist = run_parsed_query(parsed)
 print_postlist(docs_postlist, docs_intersect)
 
-# In[183]:
+
+# In[207]:
 
 
 # docs_postlist, parsed
 
 
-# In[184]:
+# In[208]:
 
 
 
