@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[136]:
+# In[102]:
 
 
 import re
@@ -11,19 +11,20 @@ import numpy as np
 from collections import defaultdict, OrderedDict
 import sys
 
-# In[137]:
+
+# In[103]:
 
 
-re.split(':','c:Sachin Ramesh Tendulkar t:world cup')
+re.split(':','b:Sachin c:world cup')
 
 
-# In[138]:
+# In[104]:
 
 
 STOP_DICT = {}
 # INPUT_FILE = '../enwiki-20200801-pages-articles-multistream1.xml-p1p30303'
-INDEX_DIR = sys.argv[1]
-QUERY = sys.argv[2]
+INDEX_DIR = 'index/'
+QUERY = 'b:Sachin c:world cup'
 if INDEX_DIR[-1]!='/':
     INDEX_DIR+='/'
 STOP_DICT = {}
@@ -46,7 +47,7 @@ for i in temp:
     index[splits[0]] = splits[1].split(' ')
 
 
-# In[139]:
+# In[105]:
 
 
 def preprocess(text):
@@ -59,7 +60,7 @@ def preprocess(text):
     return stemmed_stop_free
 
 
-# In[140]:
+# In[106]:
 
 
 def parse_query(query):
@@ -75,16 +76,20 @@ def parse_query(query):
         return query_dict, 1
 
 
-# In[141]:
+# In[107]:
 
 
 def run_whole_query(query):
     docs_intersect = []
     for i in range(len(query)):
         doc_list = []
+        docs_postlist = {}
+        post = []
         for j in index[query[i]]:
             splits = re.split('d|b|i|l|r|t|c', j)
             doc_list.append(splits[1])
+            post.append(j)
+        docs_postlist[query[i]]=post
         if i == 0:
             docs_intersect = doc_list
         else:
@@ -92,15 +97,17 @@ def run_whole_query(query):
     return docs_intersect
 
 
-# In[142]:
+# In[108]:
 
 
 def run_parsed_query(query_dict):
     flag = 0
     docs_intersect = []
+    docs_postlist = {}
     for category in query_dict.keys():
         for i in range(len(query_dict[category])):
             doc_list = []
+            post = []
             for j in index[query_dict[category][i]]:
                 if category == 't':
                     splits = re.split('t', j)
@@ -115,33 +122,51 @@ def run_parsed_query(query_dict):
                 if category == 'r':
                     splits = re.split('r', j)
                 if len(splits) > 1:
+                    post.append(j)
                     splits2 = re.split('d|b|i|l|r|t|c', j)
                     doc_list.append(splits2[1])
+                    docs_postlist[category+':'+query_dict[category][i]]=j
+            docs_postlist[category+':'+query_dict[category][i]]=post
             if flag == 0:
                 docs_intersect = doc_list
                 flag = 1
             else:
                 docs_intersect = np.intersect1d(docs_intersect, doc_list)
-    return docs_intersect
+    return docs_intersect, docs_postlist
 
 
-# In[143]:
+# In[109]:
+
+
+def print_postlist(postlist):
+    for i in postlist.keys():
+        print("Postlist for",i+":")
+        for j in postlist[i]:
+            print(j,end=' ')
+        print()
+        print()
+
+
+# In[112]:
 
 
 parsed, querytype = parse_query(QUERY)
+docs_intersect = []
+docs_postlist = {}
 if querytype == 0:
-    print(run_whole_query(parsed))
+    docs_intersect, docs_postlist = run_whole_query(parsed)
 else:
-    print(run_parsed_query(parsed))
+    docs_intersect, docs_postlist = run_parsed_query(parsed)
+print_postlist(docs_postlist)
 
 
-# In[144]:
+# In[111]:
 
 
-# parsed
+querytype
 
 
-# In[145]:
+# In[112]:
 
 
 

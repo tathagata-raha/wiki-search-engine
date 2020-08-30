@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[54]:
+# In[1]:
 
 
 import xml.sax
@@ -16,7 +16,7 @@ import time
 
 # Need to change these below
 
-# In[55]:
+# In[2]:
 
 
 INPUT_FILE = sys.argv[1]
@@ -38,7 +38,7 @@ title_dict = {}
 indexMap = defaultdict(list)
 
 
-# In[56]:
+# In[3]:
 
 
 def preprocess(text):
@@ -55,7 +55,7 @@ def preprocess(text):
     return stemmed_stop_free
 
 
-# In[57]:
+# In[4]:
 
 
 def extract_under_ref(splits):
@@ -126,7 +126,7 @@ def extract_infobox_and_refs(text):
 #     return self.process(' '.join(links))
 
 
-# In[58]:
+# In[5]:
 
 
 def split_page( text):
@@ -165,7 +165,7 @@ def split_page( text):
     # return self
 
 
-# In[59]:
+# In[6]:
 
 
 def indexify(data):
@@ -249,7 +249,7 @@ def indexify(data):
     #     fileCount += 1
 
 
-# In[60]:
+# In[7]:
 
 
 class xml_handler( xml.sax.ContentHandler ):
@@ -310,7 +310,7 @@ class xml_handler( xml.sax.ContentHandler ):
         #     self.hashed = 1
 
 
-# In[61]:
+# In[8]:
 
 
 def store_index():
@@ -324,7 +324,7 @@ def store_index():
         f.write('\n'.join(orderedMap))
 
 
-# In[62]:
+# In[9]:
 
 
 def wiki_parse(xml_file):
@@ -346,13 +346,13 @@ def wiki_parse(xml_file):
     print("Time taken: ",time.time() - parse_end_time)
 
 
-# In[63]:
+# In[10]:
 
 
 wiki_parse(INPUT_FILE)
 
 
-# In[64]:
+# In[11]:
 
 
 # count = 0
@@ -365,7 +365,7 @@ wiki_parse(INPUT_FILE)
 # print(count)
 
 
-# In[65]:
+# In[12]:
 
 
 # for i in range(len(title_dict)):
@@ -373,7 +373,7 @@ wiki_parse(INPUT_FILE)
 #         print(i)
 
 
-# In[66]:
+# In[13]:
 
 
 # string = 'Ancient Egypt; Abydos, Egypt; Amasis II; Ammonius Saccas; Ababda people; Aswan; Abbas II of Egypt; Ambrose of Alexandria; Alexandria; Athanasius of Alexandria; Anthony the Great; Basel Convention; Battle of the Nile; Battle of Actium; Convention on Biological Diversity; CITES; Environmental Modification Convention; Cairo; Clement of Alexandria; Cyril of Alexandria; Coptic Orthodox Church of Alexandria; Duke Nukem 3D; Diophantus; Geography of Egypt; Demographics of Egypt; Politics of Egypt; Economy of Egypt; Telecommunications in Egypt; Transport in Egypt; Egyptian Armed Forces; Foreign relations of Egypt; Book of Exodus; First Battle of El Alamein; Go Down Moses; Great Pyramid of Giza; Great Rift Valley; Herodotus; History of Egypt; International Tropical Timber Agreement, 1983; International Tropical Timber Agreement, 1994; Imhotep; Kyoto Protocol; Kellogg–Briand Pact; Lighthouse of Alexandria; Library of Alexandria; Maimonides; Montreal Protocol; Mark Antony; Metre Convention; Muslim Brotherhood; Munich massacre; Nile; Treaty on the Non-Proliferation of Nuclear Weapons; Ozymandias; Origen; Pachomius the Great; Prospero Alpini; Pompey; Ptolemy; Ptolemaic dynasty; Palestine Liberation Organization; Red Sea; Rosetta Stone; Return to Castle Wolfenstein; Saladin; Sahara desert (ecoregion); Sinai Peninsula; Stargate (film); Saluki; Suez Canal; Six-Day War; Second Battle of El Alamein; Tax'
@@ -383,7 +383,7 @@ wiki_parse(INPUT_FILE)
 #     g_list.append(preprocess(i.lower()))
 
 
-# In[67]:
+# In[14]:
 
 
 # for element in g_list:
@@ -391,21 +391,28 @@ wiki_parse(INPUT_FILE)
 #         print(element)
 
 
-# In[68]:
+# In[15]:
 
 
 # indexMap['egypt']
 
 
-# In[69]:
+# In[16]:
 
 
-# print(title_dict[13075])
+# for i in ['2510', '12182', '13075', '19205']:
+#     print(title_dict[int(i)], end='; ')
 
 
-# In[70]:
+# In[17]:
 
 
 # line = '{{cite news|last=Rendell|first=Ruth|authorlink=Ruth Rendell|title=A most serious and extraordinary problem |url=https://www.theguardian.com/books/2008/sep/13/arthurconandoyle.crime|newspaper=[[The Guardian]]|date= 12 September 2008|accessdate=8 December 2018}}'
 # re.sub(r'.*title[\ ]*=[\ ]*([^\|]*).*', r'\1', line)
+
+
+# In[18]:
+
+
+
 
