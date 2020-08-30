@@ -1,0 +1,1 @@
+python 2018114017/wiki_indexer.py $1 $2 $3

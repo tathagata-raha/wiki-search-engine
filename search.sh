@@ -1,0 +1,1 @@
+python 2018114017/wiki_search.py $1 $2
