@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[102]:
+# In[174]:
 
 
 import re
@@ -12,13 +12,13 @@ from collections import defaultdict, OrderedDict
 import sys
 
 
-# In[103]:
+# In[175]:
 
 
 re.split(':','b:Sachin c:world cup')
 
 
-# In[104]:
+# In[176]:
 
 
 STOP_DICT = {}
@@ -47,7 +47,7 @@ for i in temp:
     index[splits[0]] = splits[1].split(' ')
 
 
-# In[105]:
+# In[177]:
 
 
 def preprocess(text):
@@ -60,7 +60,7 @@ def preprocess(text):
     return stemmed_stop_free
 
 
-# In[106]:
+# In[178]:
 
 
 def parse_query(query):
@@ -76,14 +76,14 @@ def parse_query(query):
         return query_dict, 1
 
 
-# In[107]:
+# In[179]:
 
 
 def run_whole_query(query):
     docs_intersect = []
+    docs_postlist = {}
     for i in range(len(query)):
         doc_list = []
-        docs_postlist = {}
         post = []
         for j in index[query[i]]:
             splits = re.split('d|b|i|l|r|t|c', j)
@@ -94,10 +94,10 @@ def run_whole_query(query):
             docs_intersect = doc_list
         else:
             docs_intersect = np.intersect1d(docs_intersect, doc_list)
-    return docs_intersect
+    return docs_intersect, docs_postlist
 
 
-# In[108]:
+# In[180]:
 
 
 def run_parsed_query(query_dict):
@@ -135,19 +135,20 @@ def run_parsed_query(query_dict):
     return docs_intersect, docs_postlist
 
 
-# In[109]:
+# In[186]:
 
 
-def print_postlist(postlist):
+def print_postlist(postlist, docs_ids):
     for i in postlist.keys():
         print("Postlist for",i+":")
         for j in postlist[i]:
             print(j,end=' ')
         print()
         print()
+    print('Common docs:', ' '.join(docs_ids))
 
 
-# In[112]:
+# In[187]:
 
 
 parsed, querytype = parse_query(QUERY)
@@ -157,16 +158,16 @@ if querytype == 0:
     docs_intersect, docs_postlist = run_whole_query(parsed)
 else:
     docs_intersect, docs_postlist = run_parsed_query(parsed)
-print_postlist(docs_postlist)
+print_postlist(docs_postlist, docs_intersect)
 
 
-# In[111]:
+# In[183]:
 
 
-querytype
+# docs_postlist, parsed
 
 
-# In[112]:
+# In[184]:
 
 
 
