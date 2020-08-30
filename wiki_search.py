@@ -145,7 +145,6 @@ def print_postlist(postlist, docs_ids):
             print(j,end=' ')
         print()
         print()
-    print('Common docs:', ' '.join(docs_ids))
 
 
 # In[187]:
@@ -159,7 +158,6 @@ if querytype == 0:
 else:
     docs_intersect, docs_postlist = run_parsed_query(parsed)
 print_postlist(docs_postlist, docs_intersect)
-
 
 # In[183]:
 
