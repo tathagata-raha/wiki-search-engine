@@ -23,8 +23,8 @@ re.split(':','b:Sachin c:world cup')
 
 STOP_DICT = {}
 # INPUT_FILE = '../enwiki-20200801-pages-articles-multistream1.xml-p1p30303'
-INDEX_DIR = 'index/'
-QUERY = 'b:Sachin c:world cup'
+INDEX_DIR = sys.argv[1]
+QUERY = sys.argv[2]
 if INDEX_DIR[-1]!='/':
     INDEX_DIR+='/'
 STOP_DICT = {}
