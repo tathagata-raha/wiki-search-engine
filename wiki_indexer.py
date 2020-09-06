@@ -3,7 +3,7 @@
 
 # Import the required libraries
 
-# In[124]:
+# In[1]:
 
 
 import xml.sax
@@ -18,13 +18,13 @@ import time
 
 # In the cell below, we have instantiated some global variables and initiated the stemmer
 
-# In[125]:
+# In[2]:
 
 
 #Need to change these below
-INPUT_FILE = '../enwiki-20200801-pages-articles-multistream1.xml-p1p30303'
-OUTPUT = 'index/'
-INDEX_STAT = '​invertedindex_stat.txt​'
+INPUT_FILE = sys.argv[1]
+OUTPUT = sys.argv[2]
+INDEX_STAT = sys.argv[3]
 TOTAL_TOKENS = 0
 TOTAL_INV_TOKENS = 0
 if OUTPUT[-1]!='/':
@@ -32,9 +32,9 @@ if OUTPUT[-1]!='/':
 STOP_DICT = {}
 STOP_FILE = ''
 if OUTPUT.split('/')[0] == '2018114017':
-    STOP_FILE = '2018114017/stopwords.pickle'
+    STOP_FILE = '2018114017/frequent.pickle'
 else:
-    STOP_FILE = 'stopwords.pickle'
+    STOP_FILE = 'frequent.pickle'
 with open(STOP_FILE, 'rb') as handle:
     STOP_DICT = pickle.load(handle)
 handle.close()
@@ -44,9 +44,10 @@ title_dict = {}
 indexMap = defaultdict(list)
 
 
-# The preprocess function is to process the text. It tokenizes the data, removes unnecessary non-ASCII characters and punctuations, stem the words using pystemmer and remove stop words
+# The preprocess function is to process the text. It tokenizes the data, removes unnecessary 
+# non-ASCII characters and punctuations, stem the words using pystemmer and remove stop words
 
-# In[107]:
+# In[3]:
 
 
 def preprocess(text):
@@ -56,11 +57,13 @@ def preprocess(text):
     stemmed_stop_free = []
     for token in tokens:
         if token not in STOP_DICT:
+            temp_stem = ''
             if token in stem_dict:
-                stemmed_stop_free.append(stem_dict[token])
+                temp_stem = stem_dict[token]
             else:
                 stem_dict[token] = stemmer.stemWord(token)
-                stemmed_stop_free.append(stem_dict[token])
+                temp_stem = stem_dict[token]
+            stemmed_stop_free.append(temp_stem)
             # stemmed_stop_free.append(stemmer.stemWord(token))
     return stemmed_stop_free
 
@@ -68,7 +71,7 @@ def preprocess(text):
 # The extract_under_ref function separates and preprocesses links, references and categories.
 # The extract_infobox_and_refs separates and preprocesses infobox contents and references.
 
-# In[127]:
+# In[4]:
 
 
 def extract_under_ref(splits):
@@ -95,6 +98,8 @@ def extract_infobox_and_refs(text):
     info = []
     refs2 = []
     for line in data:
+        for i in re.findall("{{cite.*title=.*}}", line):
+            refs2.append(re.sub(r'.*title[\ ]*=[\ ]*([^\|]*).*', r'\1', line))
         if re.match(r'\{\{infobox', line):
             flag = 1
             info.append(re.sub(r'\{\{infobox(.*)', r'\1', line))
@@ -103,14 +108,12 @@ def extract_infobox_and_refs(text):
                 flag = 0
                 continue
             info.append(line)
-        for i in re.findall("{{cite.*title=.*}}", line):
-            refs2.append(re.sub(r'.*title[\ ]*=[\ ]*([^\|]*).*', r'\1', line))
     return preprocess(' '.join(info)), preprocess(' '.join(refs2))
 
 
 # The split_page function splits a Wikipedia page into different parts like text, links, refs, body, categories
 
-# In[128]:
+# In[5]:
 
 
 def split_page( text):
@@ -134,7 +137,7 @@ def split_page( text):
 
 # The indexify function converts the document into inverted index
 
-# In[110]:
+# In[6]:
 
 
 def indexify(data):
@@ -161,7 +164,7 @@ def indexify(data):
 
 # The xml_handler class is used to parse he xml file and call all the above functions
 
-# In[129]:
+# In[7]:
 
 
 class xml_handler( xml.sax.ContentHandler ):
@@ -229,18 +232,16 @@ class xml_handler( xml.sax.ContentHandler ):
 
 # The store_index function stores the index and index stats in files
 
-# In[130]:
+# In[8]:
 
 
 def store_index():
-    orderedMap = []
+    index_map_file = []
     for key in sorted(indexMap.keys()):
-        string = key + ':'
-        posting_list = indexMap[key]
-        string += ' '.join(posting_list)
-        orderedMap.append(string)
+        string = key + ':' + ' '.join(indexMap[key])
+        index_map_file.append(string)
     with open(OUTPUT+'index.txt',"w+") as f:
-        f.write('\n'.join(orderedMap))
+        f.write('\n'.join(index_map_file))
     with open(INDEX_STAT,"w+") as f:
         f.write(str(TOTAL_TOKENS)+'\n')
         f.write(str(len(indexMap))+'\n')
@@ -248,7 +249,7 @@ def store_index():
 
 # The wiki_parse function calls the xml_handler class and starts parsing the xml file. It also measures the time taken to parse the files.
 
-# In[131]:
+# In[9]:
 
 
 def wiki_parse(xml_file):
@@ -263,92 +264,11 @@ def wiki_parse(xml_file):
     parse_end_time = time.time()
     print("Total time taken: ",parse_end_time - parse_start_time)
     store_index()
-    # pickle_out = open("index.pickle","wb")
-    # pickle.dump(indexMap, pickle_out)
-    # pickle_out.close()
     print("Dumping finished")
     print("Time taken: ",time.time() - parse_end_time)
 
 
-# In[114]:
+# In[10]:
 
 
 wiki_parse(INPUT_FILE)
-
-
-# In[115]:
-
-
-# count = 0
-# t_list = []
-# for i in indexMap['egypt']:
-#     splits = re.split('c',i)
-#     if(len(splits) > 1):
-#         t_list.append(preprocess(title_dict[int(re.split('d|b|i',splits[0])[1])].lower()))
-#         print(int(re.split('d|b|i',splits[0])[1]))
-# print(count)
-
-
-# In[116]:
-
-
-# for i in range(len(title_dict)):
-#     if preprocess(title_dict[i].lower()) == ['kellogg', 'briand', 'pact']:
-#         print(i)
-
-
-# In[117]:
-
-
-# string = 'Ancient Egypt; Abydos, Egypt; Amasis II; Ammonius Saccas; Ababda people; Aswan; Abbas II of Egypt; Ambrose of Alexandria; Alexandria; Athanasius of Alexandria; Anthony the Great; Basel Convention; Battle of the Nile; Battle of Actium; Convention on Biological Diversity; CITES; Environmental Modification Convention; Cairo; Clement of Alexandria; Cyril of Alexandria; Coptic Orthodox Church of Alexandria; Duke Nukem 3D; Diophantus; Geography of Egypt; Demographics of Egypt; Politics of Egypt; Economy of Egypt; Telecommunications in Egypt; Transport in Egypt; Egyptian Armed Forces; Foreign relations of Egypt; Book of Exodus; First Battle of El Alamein; Go Down Moses; Great Pyramid of Giza; Great Rift Valley; Herodotus; History of Egypt; International Tropical Timber Agreement, 1983; International Tropical Timber Agreement, 1994; Imhotep; Kyoto Protocol; Kellogg–Briand Pact; Lighthouse of Alexandria; Library of Alexandria; Maimonides; Montreal Protocol; Mark Antony; Metre Convention; Muslim Brotherhood; Munich massacre; Nile; Treaty on the Non-Proliferation of Nuclear Weapons; Ozymandias; Origen; Pachomius the Great; Prospero Alpini; Pompey; Ptolemy; Ptolemaic dynasty; Palestine Liberation Organization; Red Sea; Rosetta Stone; Return to Castle Wolfenstein; Saladin; Sahara desert (ecoregion); Sinai Peninsula; Stargate (film); Saluki; Suez Canal; Six-Day War; Second Battle of El Alamein; Tax'
-# gaurang = string.split(';')
-# g_list = []
-# for i in gaurang:
-#     g_list.append(preprocess(i.lower()))
-
-
-# In[118]:
-
-
-# for element in g_list:
-#     if element not in t_list:
-#         print(element)
-
-
-# In[119]:
-
-
-# indexMap['egypt']
-
-
-# In[120]:
-
-
-# for i in ['2510', '12182', '13075', '19205']:
-#     print(title_dict[int(i)], end='; ')
-
-
-# In[121]:
-
-
-# line = '{{cite news|last=Rendell|first=Ruth|authorlink=Ruth Rendell|title=A most serious and extraordinary problem |url=https://www.theguardian.com/books/2008/sep/13/arthurconandoyle.crime|newspaper=[[The Guardian]]|date= 12 September 2008|accessdate=8 December 2018}}'
-# re.sub(r'.*title[\ ]*=[\ ]*([^\|]*).*', r'\1', line)
-
-
-# In[122]:
-
-
-# TOTAL_TOKENS
-
-
-# In[123]:
-
-
-# len(indexMap)
-
-
-# In[124]:
-
-
-
-

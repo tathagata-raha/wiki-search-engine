@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[198]:
+# Importing the required libraries
+
+# In[1]:
 
 
 import re
@@ -12,13 +14,9 @@ from collections import defaultdict, OrderedDict
 import sys
 
 
-# In[199]:
+# In the cell below, we have instantiated some global variables, initiated the stemmer and read the index file
 
-
-re.split(':','b:Sachin c:world cup')
-
-
-# In[200]:
+# In[2]:
 
 
 STOP_DICT = {}
@@ -30,9 +28,9 @@ if INDEX_DIR[-1]!='/':
 STOP_DICT = {}
 STOP_FILE = ''
 if INDEX_DIR.split('/')[0] == '2018114017':
-    STOP_FILE = '2018114017/stopwords.pickle'
+    STOP_FILE = '2018114017/frequent.pickle'
 else:
-    STOP_FILE = 'stopwords.pickle'
+    STOP_FILE = 'frequent.pickle'
 with open(STOP_FILE, 'rb') as handle:
     STOP_DICT = pickle.load(handle)
 handle.close()
@@ -47,7 +45,10 @@ for i in temp:
     index[splits[0]] = splits[1].split(' ')
 
 
-# In[201]:
+# The preprocess function is to process the text. It tokenizes the data, removes unnecessary 
+# non-ASCII characters and punctuations, stem the words using pystemmer and remove stop words
+
+# In[3]:
 
 
 def preprocess(text):
@@ -60,7 +61,9 @@ def preprocess(text):
     return stemmed_stop_free
 
 
-# In[202]:
+# The parse_query function parses the function and determines if it is a field query or a normal query
+
+# In[4]:
 
 
 def parse_query(query):
@@ -76,7 +79,9 @@ def parse_query(query):
         return query_dict, 1
 
 
-# In[203]:
+# This function is used to handled to handle the normal query
+
+# In[5]:
 
 
 def run_whole_query(query):
@@ -97,7 +102,9 @@ def run_whole_query(query):
     return docs_intersect, docs_postlist
 
 
-# In[204]:
+# This function is used to handled to handle the field query
+
+# In[6]:
 
 
 def run_parsed_query(query_dict):
@@ -135,7 +142,9 @@ def run_parsed_query(query_dict):
     return docs_intersect, docs_postlist
 
 
-# In[205]:
+# This is used to print the postlist of the queries
+
+# In[7]:
 
 
 def print_postlist(postlist, docs_ids):
@@ -147,7 +156,7 @@ def print_postlist(postlist, docs_ids):
         print()
 
 
-# In[206]:
+# In[8]:
 
 
 parsed, querytype = parse_query(QUERY)
@@ -158,16 +167,4 @@ if querytype == 0:
 else:
     docs_intersect, docs_postlist = run_parsed_query(parsed)
 print_postlist(docs_postlist, docs_intersect)
-
-
-# In[207]:
-
-
-# docs_postlist, parsed
-
-
-# In[208]:
-
-
-
 
